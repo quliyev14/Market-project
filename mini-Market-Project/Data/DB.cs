@@ -2,15 +2,7 @@
 
 public static class DB
 {
-    //public static void JsonWrite<T>(string path, T obj)
-    //{
-    //    if (File.Exists(path))
-    //        Write<T>(path, obj);
-
-    //    else { File.WriteAllText(path, JsonSerializer.Serialize(new List<T>(), new JsonSerializerOptions() { WriteIndented = true })); Write<T>(path, obj); }
-    //}
-
-    public static void JsonWrite<T>(string path, T obj)
+    public static void JsonWrite<T>(in string path, in string logPath, T obj)
     {
         var exitsObj = new List<T>();
 
@@ -28,26 +20,16 @@ public static class DB
             exitsObj!.Add(obj);
             File.WriteAllText(path, JsonSerializer.Serialize(exitsObj, new JsonSerializerOptions() { WriteIndented = true }));
         }
+        WriteLog<T>(logPath, obj);
     }
 
+    public static List<T>? JsonRead<T>(string path) => File.Exists(path)
+        ? NetJSON.NetJSON.Deserialize<List<T>>(File.ReadAllText(path: path))
+        : throw new FileNotFoundException(nameof(path));
 
-    [Obsolete("This method is work cannot", true)]
-    private static void Write<T>(in string path, T obj)
-    {
-        var exitsObj = new List<T>();
-
-        exitsObj = JsonRead<T>(path);
-
-        //var maxId = exitsObj!.Select(x => (int)x!.GetType().GetProperty("Id")!.GetValue(x)!).DefaultIfEmpty(0).Max();
-        //obj!.GetType().GetProperty("Id")!.SetValue(obj, maxId + 1); exitsObj!.Add(obj);
-        File.WriteAllText(path, JsonSerializer.Serialize(exitsObj, new JsonSerializerOptions() { WriteIndented = true }));
-    }
-
-    public static List<T>? JsonRead<T>(string path) => File.Exists(path) ? NetJSON.NetJSON.Deserialize<List<T>>(File.ReadAllText(path: path)) : throw new FileNotFoundException(nameof(path));
-
-    public static void ProductWriteLog<T>(string log, T products) where T : Product
+    public static void WriteLog<T>(string log, T obj)
     {
         using (var write = new StreamWriter(log, true))
-            write.WriteLine($"{products} Product add");
+            write.WriteLine($"{obj}");
     }
 }

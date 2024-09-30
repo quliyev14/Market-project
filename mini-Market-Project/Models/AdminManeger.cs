@@ -1,95 +1,41 @@
 ﻿namespace mini_Market_Project;
 
-public static class AdminManager
+public static partial class AdminManeger
 {
-    public static void SignIn<T>(in string path) where T : Admin
+    public static bool SignIn<T>(in string path, GmailService gmailService) where T : Admin
     {
-        Console.Write("Gmail:  ");
-        string? gmail = Console.ReadLine();
-        Console.Write("Password:  ");
-        string? password = Console.ReadLine();
-
-
-        try
+        if (!File.Exists(path))
+            throw new FileNotFoundException(nameof(path));
+        else
         {
-            if (!File.Exists(path))
-                throw new FileNotFoundException(nameof(path));
-
-            else
+            var jrr = DB.JsonRead<T>(path)!.Where(l => l.GmailService != null && l.GmailService.gmail == gmailService.gmail && l.GmailService.password == gmailService.password);
+            if (jrr is not null)
             {
-                var jsonReadResult = DB.JsonRead<T>(path) ?? new List<T>();
-
-                foreach (var item in jsonReadResult)
+                foreach (var i in jrr) 
                 {
-                    if (item.GmailService.gmail == gmail || item.GmailService.password == password)
-                    {
-                        break;
-                        throw new ArgumentException(nameof(item));
-                    }
-                    Console.WriteLine("Wrong");
-                    return;
+                    Console.WriteLine("Sign in successful");
+                    return true;
                 }
             }
+            AdminManeger.HelpFunc();
+            return false;
         }
-        catch (FileNotFoundException fnfe)
-        {
-            Console.WriteLine($"{fnfe.Message}");
-        }
-        catch (ArgumentException ae)
-        {
-            Console.WriteLine($"{ae.Message}");
-        }
-
-
-
-
-        //try
-        //{
-        //    _ = DB.JsonRead<T>(path)!.FirstOrDefault(a => a.GmailService.gmail == gmail && a.GmailService.password == password) is null ? throw new ArgumentNullException("Is null") : (object)null!;
-        //}
-        //catch (ArgumentNullException ane)
-        //{
-        //    Console.WriteLine($"{ane.Message}");
-        //}
-
-        #region Code
-        //try
-        //{
-        //    if (!File.Exists(path)) throw new FileNotFoundException(nameof(path));
-        //    else
-        //    {
-        //        var readJson = DB.JsonRead<T>(path)!.FirstOrDefault(a => a.GmailService.gmail == gmail && a.GmailService.password == password);
-
-        //        if (readJson is null) throw new ArgumentNullException(nameof(readJson));
-
-        //        return;
-        //    }
-        //}
-        //catch (FileNotFoundException ex)
-        //{
-        //    Console.WriteLine($"{ex.Message}");
-        //}
-        //catch (ArgumentNullException ane)
-        //{
-        //    Console.WriteLine($"{ane.Message}");
-        //}
-        #endregion
     }
 
-    public static void SignUp(in string jsonPath)
+    [Obsolete("This method is work cannot", true)]
+    public static void SignUp(in string path, in string logPath, Admin obj) => DB.JsonWrite(path, logPath, obj);
+
+    public static void SignUp<T>(in string path, in string logPath, T obj)
     {
-        Console.Write("Name:  ");
-        string? name = Console.ReadLine();
-        Console.Write("Surname:  ");
-        string? surname = Console.ReadLine();
-        Console.Write("Gmail:  ");
-        string? gmail = Console.ReadLine();
-        Console.Write("Password:  ");
-        string? password = Console.ReadLine();
-
-        DB.JsonWrite(jsonPath, new Admin(name, surname, new GmailService(gmail, password)));
+        if (obj is null)
+            throw new ArgumentException(nameof(obj));
+        else
+            DB.JsonWrite<T>(path, logPath, obj);
     }
+}
 
+public static partial class AdminManeger
+{
     public static void HelpFunc()
     {
         Console.ReadKey();

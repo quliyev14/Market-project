@@ -4,7 +4,7 @@ public static class UserSystem
 {
     public static void Sales(in string path)
     {
-        SuperMarket.AllShowProduct(path);
+        SuperMarket.AllShow<Product>(path);
         Console.WriteLine("Secim edin");
 
         //pass

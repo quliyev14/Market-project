@@ -1,100 +1,67 @@
 ﻿//#define Find
 //#define Delete
+using mini_Market_Project.Models;
+
 namespace mini_Market_Project;
 
 public static class SuperMarket
 {
-    [Obsolete("This Method is work cannot", true)]
-    public static void ADD(in string jsonPath, in string logPath)
+    public static void Add(in string path, in string logPath, Product product)
     {
-        Console.Write("Product code:  ");
-        string? productCode = Console.ReadLine();
-        Console.Write("Product name:  ");
-        string? productName = Console.ReadLine();
-        Console.Write("Product count:  ");
-        string? productCount = Console.ReadLine();
-        int count = Convert.ToInt32(productCount);
-        Console.Write("Product price:  ");
-        string? productPrice = Console.ReadLine();
+        var budgetJsonReadresult = ProductCalcuationReceived.BudgetCalc(product.Count, (double)product.Price);
 
-        try
-        {
-            if (float.TryParse(productPrice, out float price))
-            {
-                if (count * price >= budget) throw new Exception(nameof(budget));
-                else
-                {
-                    var product = new Product(productName, productCode, count, price);
-                    DB.JsonWrite<Product>(jsonPath, product);
-                    DB.ProductWriteLog(logPath, product);
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.Message);
-        }
-    }
-
-    public static void Add(in string jsonPath, in string logPath)
-    {
-        Console.Write("Product code:  ");
-        string? productCode = Console.ReadLine();
-        Console.Write("Product name:  ");
-        string? productName = Console.ReadLine();
-        Console.Write("Product count:  ");
-        string? productCount = Console.ReadLine();
-        int count = Convert.ToInt32(productCount);
-        Console.Write("Product price:  ");
-        string? productPrice = Console.ReadLine();
-
-        if (float.TryParse(productPrice, out float price))
-        {
-            if (count * price >= budget) throw new Exception(nameof(budget));
-            else
-            {
-                var product = new Product(productName, productCode, count, price);
-                DB.JsonWrite<Product>(jsonPath, product);
-                DB.ProductWriteLog(logPath, product);
-            }
-        }
+        if (budgetJsonReadresult is false)
+            throw new ArgumentException(nameof(budgetJsonReadresult));
+        else
+            DB.JsonWrite<Product>(path, logPath, product);
     }
 
     //[Conditional("Delete")]
-    public static void Delete(in string jsonPath)
+    public static void Delete(in string path, in string log, Product product)
     {
-        Console.Write("Product name:  ");
-        string? productName = Console.ReadLine();
+        AllShow<Product>(path);
 
-        if (string.IsNullOrEmpty(productName)) throw new ArgumentNullException(nameof(productName));
+        var jrr = DB.JsonRead<Product>(path) ?? new List<Product>();
+
+        if (jrr is { })
+            foreach (var i in jrr!)
+            {
+                if (i.Name == product.Name)
+                {
+                    jrr.Remove(i);
+                    DB.JsonWrite<Product>(path, log, i);
+                }
+            }
         else
-        {
-            var result = DB.JsonRead<Product>(jsonPath)!.FirstOrDefault(p => p.Name == productName);
-            if (result is null) throw new ArgumentNullException(nameof(result));
+            Console.WriteLine();
+    }
 
-            else DB.JsonWrite(jsonPath, DB.JsonRead<Product>(jsonPath)!.Remove(result));
-        }
+    public static void Edit(in string path)
+    {
+
     }
 
     //[Conditional("Find")]
-    public static void Find(in string path)
+    public static void Find(in string path, string find)
     {
-        Console.Write("Product name:  ");
-        string? productName = Console.ReadLine();
+        var itemResult = DB.JsonRead<Product>(path)!.
+                         Where(p => p.Name!.
+                         Contains(find!)).
+                         ToList(); // way 1
+                                   //var itemResult2 = DB.JsonRead<Product>(path)!.Where(p => p.Name is not null && p.Name!.Contains(productName!)).ToList(); // way 2
 
-        try
+        if (string.IsNullOrEmpty(itemResult.ToString())) throw new ArgumentException("Don't find."); //way 1
+        //if (!itemResult.Any()) throw new ArgumentException("Don't find."); //way 2
+
+        else
         {
-            var result = DB.JsonRead<Product>(path)!.FirstOrDefault(p => p.Name == productName);
-            if (result is null) throw new ArgumentNullException(nameof(result));
-            else Console.WriteLine($"{result}");
-        }
-        catch (ArgumentNullException ane)
-        {
-            Console.WriteLine(ane.Message);
+            foreach (var i in itemResult)
+                Console.WriteLine($"{i}");
         }
     }
 
-    public static void AllShowProduct(in string path) => DB.JsonRead<Product>(path)!.ForEach(j => Console.WriteLine("{0} {1} {2}", j.Id, j.Name, j.Count));
+    public static void AllShow<T>(in string path) => DB.JsonRead<T>(path)!.
+                                                         ForEach(e => Console.WriteLine("{0}", e));
 
-    public static float budget { get; set; } = 1000;
+    public static double budget { get; set; } = 1000;
 }
