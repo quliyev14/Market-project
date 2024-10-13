@@ -9,9 +9,9 @@ public static partial class AdminManeger
         else
         {
             var jrr = DB.JsonRead<T>(path)!.Where(l => l.GmailService != null && l.GmailService.gmail == gmailService.gmail && l.GmailService.password == gmailService.password);
-            if (jrr is not null)
+            if (jrr is { })
             {
-                foreach (var i in jrr) 
+                foreach (var i in jrr)
                 {
                     Console.WriteLine("Sign in successful");
                     return true;

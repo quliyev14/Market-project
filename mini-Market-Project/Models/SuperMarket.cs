@@ -54,10 +54,7 @@ public static class SuperMarket
         //if (!itemResult.Any()) throw new ArgumentException("Don't find."); //way 2
 
         else
-        {
-            foreach (var i in itemResult)
-                Console.WriteLine($"{i}");
-        }
+            foreach (var i in itemResult) Console.WriteLine($"{i}");
     }
 
     public static void AllShow<T>(in string path) => DB.JsonRead<T>(path)!.
